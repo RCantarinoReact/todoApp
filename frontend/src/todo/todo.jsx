@@ -18,6 +18,10 @@ export default class Todo extends Component {
         this.handleAdd = this.handleAdd.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.handleRemove = this.handleRemove.bind(this);
+        this.handleMarkAsDone = this.handleMarkAsDone.bind(this);
+        this.handleMarkAsPending = this.handleMarkAsPending.bind(this);
+        this.handleSearch = this.handleSearch.bind(this);
+        this.handleClear = this.handleClear.bind(this);
     }
 
     handleAdd() {
@@ -30,20 +34,38 @@ export default class Todo extends Component {
             console.log(error.response)
         });
     }
-
-    refresh(){
-        axios.get(`${URL}?sort=-createdAt`)
-              .then(resp => 
-                     this.setState({
-                        ...this.state,
-                        description :'',
-                        list: resp.data
-                     }))
+    handleSearch() {
+        this.refresh(this.state.description)
     }
-    handleRemove(todo){
+
+    handleClear() {
+        this.refresh()
+    }
+
+
+    refresh(description = '') {
+        const search = description ? `&description__regex=/${description}/` : ''
+        axios.get(`${URL}?sort=-createdAt${search}`)
+            .then(resp =>
+                this.setState({
+                    ...this.state,
+                    description,
+                    list: resp.data
+                }))
+    }
+    handleRemove(todo) {
         axios.delete(`${URL}/${todo._id}`)
-        .then(response => {
-            this.refresh() })
+            .then(response => { this.refresh(this.state.description) })
+    }
+
+    handleMarkAsDone(todo) {
+        axios.put(`${URL}/${todo._id}`, { ...todo, done: true })
+            .then(response => { this.refresh(this.state.description) })
+    }
+
+    handleMarkAsPending(todo) {
+        axios.put(`${URL}/${todo._id}`, { ...todo, done: false })
+            .then(response => { this.refresh(this.state.description) })
     }
     handleChange(e) {
         this.setState(
@@ -59,10 +81,15 @@ export default class Todo extends Component {
                 <PageHeader name='tarefas' small='cadastro'></PageHeader>
                 <TodoForm
                     handleChange={this.handleChange}
-                    description={this.state.description} handleAdd={this.handleAdd} />
-                <TodoList 
-                list={this.state.list}
-                handleRemove={this.handleRemove}/>
+                    description={this.state.description}
+                    handleAdd={this.handleAdd}
+                    handleSearch={this.handleSearch}
+                    handleClear={this.handleClear} />
+                <TodoList
+                    list={this.state.list}
+                    handleRemove={this.handleRemove}
+                    handleMarkAsDone={this.handleMarkAsDone}
+                    handleMarkAsPending={this.handleMarkAsPending} />
             </div>
         )
     }
