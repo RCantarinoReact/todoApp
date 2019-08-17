@@ -2,10 +2,7 @@ import React from 'react'
 import Grid from '../template/grid'
 import IconButton from '../template/iconButton'
 
-
-
 export default props => {
-
     const keyHandler = (e) => {
         if (e.key === 'enter') {
             e.shiftKey ? props.handleSearch() : props.handleAdd()
